@@ -543,6 +543,34 @@ section[id] {
   background: var(--bg);
 }
 
+.studio-mail {
+  display: grid;
+  gap: 0.25rem;
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 1.35rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: white;
+  color: var(--navy);
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 8px 24px rgba(16, 36, 63, 0.05);
+}
+
+.studio-mail span {
+  color: var(--sapphire);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.studio-mail:hover {
+  border-color: var(--sapphire);
+  color: var(--sapphire-deep);
+}
+
 .contact-points {
   margin: 1.4rem 0 0;
   padding: 0;

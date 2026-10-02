@@ -37,7 +37,7 @@ if (form) {
     form.hidden = true;
     status.hidden = false;
     status.className = "form-status is-success";
-    status.textContent = "Message received. A studio lead will reply to the email you sent.";
+    status.textContent = "Message sent to admin@diaittech.online. A studio lead will reply to the email you left.";
   } else if (params.get("error")) {
     status.hidden = false;
     status.className = "form-status is-error";
@@ -65,9 +65,11 @@ if (form) {
       if (!response.ok || !payload.ok) {
         const errors = payload.errors || { form: "Something went wrong. Try again." };
         Object.entries(errors).forEach(([key, message]) => setError(key, message));
-        status.hidden = false;
-        status.className = "form-status is-error";
-        status.textContent = errors.form || "Check the highlighted fields.";
+        if (errors.form) {
+          status.hidden = false;
+          status.className = "form-status is-error";
+          status.textContent = errors.form;
+        }
         return;
       }
 
@@ -75,7 +77,7 @@ if (form) {
       form.hidden = true;
       status.hidden = false;
       status.className = "form-status is-success";
-      status.textContent = "Message received. A studio lead will reply to the email you sent.";
+      status.textContent = "Message sent to admin@diaittech.online. A studio lead will reply to the email you left.";
     } catch {
       status.hidden = false;
       status.className = "form-status is-error";
