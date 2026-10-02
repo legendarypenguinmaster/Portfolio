@@ -1,0 +1,11 @@
+{
+  "name": "diamond-it",
+  "private": true,
+  "description": "Diamond IT studio site — two seats, one software delivery studio.",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
