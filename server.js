@@ -7,7 +7,8 @@ const PORT = process.env.PORT || 3000;
 const dataDir = path.join(__dirname, "data");
 const dataFile = path.join(dataDir, "inquiries.json");
 
-const STUDIO_EMAIL = "admin@diaittech.online";
+loadEnvFile();
+
 const seats = new Set(["client-partner", "engineering", "project"]);
 const seatLabels = {
   "client-partner": "Client partner — 30%",
@@ -17,6 +18,25 @@ const seatLabels = {
 app.use(express.json({ limit: "24kb" }));
 app.use(express.urlencoded({ extended: false, limit: "24kb" }));
 app.use(express.static(path.join(__dirname, "public")));
+
+function loadEnvFile() {
+  const file = path.join(__dirname, ".env");
+  if (!fs.existsSync(file)) return;
+  for (const line of fs.readFileSync(file, "utf8").split(/\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#") || !trimmed.includes("=")) continue;
+    const index = trimmed.indexOf("=");
+    const key = trimmed.slice(0, index).trim();
+    let value = trimmed.slice(index + 1).trim();
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+    if (process.env[key] === undefined) process.env[key] = value;
+  }
+}
 
 function readInquiries() {
   try {
@@ -56,46 +76,37 @@ function validate(body) {
   return { inquiry, errors };
 }
 
-function pageOrigin(req) {
-  const forwarded = req.get("x-forwarded-proto");
-  const proto = forwarded ? forwarded.split(",")[0].trim() : req.protocol || "https";
-  const host = req.get("x-forwarded-host") || req.get("host") || "diaittech.online";
-  return `${proto}://${host}`;
-}
+async function sendToSlack(record) {
+  const token = process.env.SLACK_BOT_TOKEN;
+  const channel = process.env.SLACK_CHANNEL;
+  if (!token || !channel) {
+    throw new Error("Slack is not configured.");
+  }
 
-async function sendToStudio(record, req) {
   const seat = seatLabels[record.seat] || record.seat;
-  const origin = pageOrigin(req);
-  const response = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(STUDIO_EMAIL)}`, {
+  const text = [
+    "*New Diamond IT inquiry*",
+    `*Name:* ${record.name}`,
+    `*Email:* ${record.email}`,
+    `*Seat:* ${seat}`,
+    `*Location:* ${record.location || "Not provided"}`,
+    `*Platforms:* ${record.platforms || "Not provided"}`,
+    `*Message:*\n${record.message}`,
+  ].join("\n");
+
+  const response = await fetch("https://slack.com/api/chat.postMessage", {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      Origin: origin,
-      Referer: `${origin}/`,
-      "User-Agent": "Mozilla/5.0 (compatible; DiamondIT/1.0)",
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json; charset=utf-8",
     },
     signal: AbortSignal.timeout(20000),
-    body: JSON.stringify({
-      name: record.name,
-      email: record.email,
-      seat,
-      location: record.location || "Not provided",
-      platforms: record.platforms || "Not provided",
-      message: record.message,
-      _subject: `New Diamond IT inquiry from ${record.name}`,
-      _template: "table",
-      _captcha: "false",
-      _replyto: record.email,
-    }),
+    body: JSON.stringify({ channel, text }),
   });
-
   const payload = await response.json().catch(() => ({}));
-  const message = String(payload.message || "");
-  const rejected = !response.ok || /will not work|could not be delivered|invalid/i.test(message);
-  if (rejected) {
-    const error = new Error(message || "Mail delivery failed.");
-    error.detail = payload;
+  if (!response.ok || payload.ok === false) {
+    const error = new Error(payload.error || " did not accept the message.");
+    error.detail = payload.error || response.status;
     throw error;
   }
 }
@@ -121,10 +132,10 @@ app.post("/api/contact", async (req, res) => {
   };
 
   try {
-    await sendToStudio(record, req);
+    await sendToSlack(record);
   } catch (error) {
-    console.error("Contact email failed:", error.message);
-    const errors = { form: "We couldn't deliver that message to the studio inbox. Try again in a moment." };
+    console.error("Contact post failed:", error.message);
+    const errors = { form: "We couldn't post that message to Slack. Try again in a moment." };
     if (wantsHtml) return res.status(502).redirect("/?error=mail#contact");
     return res.status(502).json({ ok: false, errors });
   }

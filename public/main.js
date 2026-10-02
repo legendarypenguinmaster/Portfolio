@@ -20,11 +20,30 @@ if (navToggle && nav) {
   });
 }
 
+const seatLabels = {
+  "client-partner": "Client partner — 30%",
+  engineering: "Engineering — 70%",
+  project: "Project inquiry",
+};
+
 function setError(name, message) {
   const field = form.querySelector(`[data-field="${name}"]`);
   const slot = form.querySelector(`[data-error="${name}"]`);
   if (field) field.classList.toggle("is-invalid", Boolean(message));
   if (slot) slot.textContent = message || "";
+}
+
+function fieldErrors(data) {
+  const errors = {};
+  const name = String(data.name || "").trim();
+  const email = String(data.email || "").trim();
+  const message = String(data.message || "").trim();
+
+  if (name.length < 2) errors.name = "Enter your name.";
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = "Enter a valid email address.";
+  if (!seatLabels[data.seat]) errors.seat = "Choose a seat.";
+  if (!message) errors.message = "Add a few sentences so we know how to reply.";
+  return errors;
 }
 
 function clearErrors() {
@@ -37,7 +56,7 @@ if (form) {
     form.hidden = true;
     status.hidden = false;
     status.className = "form-status is-success";
-    status.textContent = "Message sent to admin@diaittech.online. A studio lead will reply to the email you left.";
+    status.textContent = "Message sent. A studio lead will reply to the email you left.";
   } else if (params.get("error")) {
     status.hidden = false;
     status.className = "form-status is-error";
@@ -51,6 +70,13 @@ if (form) {
 
     const data = Object.fromEntries(new FormData(form).entries());
     const button = form.querySelector("button[type='submit']");
+    const problems = fieldErrors(data);
+    if (Object.keys(problems).length) {
+      Object.entries(problems).forEach(([key, message]) => setError(key, message));
+      return;
+    }
+    if (String(data.company_website || "").trim()) return;
+
     button.disabled = true;
     button.textContent = "Sending…";
 
@@ -60,10 +86,10 @@ if (form) {
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify(data),
       });
-      const payload = await response.json();
+      const payload = await response.json().catch(() => ({}));
 
       if (!response.ok || !payload.ok) {
-        const errors = payload.errors || { form: "Something went wrong. Try again." };
+        const errors = payload.errors || { form: "We couldn't post that message. Try again in a moment." };
         Object.entries(errors).forEach(([key, message]) => setError(key, message));
         if (errors.form) {
           status.hidden = false;
@@ -77,7 +103,7 @@ if (form) {
       form.hidden = true;
       status.hidden = false;
       status.className = "form-status is-success";
-      status.textContent = "Message sent to admin@diaittech.online. A studio lead will reply to the email you left.";
+      status.textContent = "Message sent. A studio lead will reply to the email you left.";
     } catch {
       status.hidden = false;
       status.className = "form-status is-error";
