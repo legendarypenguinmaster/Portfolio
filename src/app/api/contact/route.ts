@@ -1,6 +1,12 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { budgets, projectTypes, validateInquiry, type Inquiry } from "@/lib/contact";
+import {
+  budgets,
+  contactRoles,
+  projectTypes,
+  validateInquiry,
+  type Inquiry,
+} from "@/lib/contact";
 
 const dataDir = path.join(process.cwd(), "data");
 const dataFile = path.join(dataDir, "inquiries.json");
@@ -12,15 +18,27 @@ async function sendToSlack(record: InquiryRecord) {
   const channel = process.env.SLACK_CHANNEL;
   if (!token || !channel) throw new Error("Slack is not configured.");
 
-  const text = [
-    "*New Diamond IT inquiry*",
-    `*Name:* ${record.name}`,
-    `*Email:* ${record.email}`,
-    `*Company:* ${record.company || "Not provided"}`,
-    `*Project:* ${projectTypes[record.projectType]}`,
-    `*Budget:* ${record.budget ? budgets[record.budget] : "Not provided"}`,
-    `*Message:*\n${record.message}`,
-  ].join("\n");
+  const lines =
+    record.role === "partner"
+      ? [
+          "*New Diamond IT partner application*",
+          `*Name:* ${record.name}`,
+          `*Email:* ${record.email}`,
+          `*Region:* ${record.region || "Not provided"}`,
+          `*Platforms:* ${record.platforms || "Not provided"}`,
+          `*Message:*\n${record.message}`,
+        ]
+      : [
+          "*New Diamond IT client inquiry*",
+          `*Name:* ${record.name}`,
+          `*Email:* ${record.email}`,
+          `*Company:* ${record.company || "Not provided"}`,
+          `*Project:* ${record.projectType ? projectTypes[record.projectType] : "Not provided"}`,
+          `*Budget:* ${record.budget ? budgets[record.budget] : "Not provided"}`,
+          `*Message:*\n${record.message}`,
+        ];
+
+  const text = [`*Role:* ${contactRoles[record.role]}`, ...lines].join("\n");
 
   const response = await fetch("https://slack.com/api/chat.postMessage", {
     method: "POST",

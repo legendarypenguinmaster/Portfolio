@@ -43,7 +43,7 @@ export function Contact() {
       <div className="relative isolate overflow-hidden bg-ink-950 px-5 py-24 sm:px-8 lg:py-32 lg:pr-[max(2rem,calc((100vw-1400px)/2+2rem))] lg:pl-24">
         <Silk className="-z-10 opacity-50" />
         <Reveal delay={100} className="max-w-xl">
-          <h3 className="font-heading text-2xl font-semibold text-white">Tell us about your project</h3>
+          <h3 className="font-heading text-2xl font-semibold text-white">Get in touch</h3>
           <ContactForm />
         </Reveal>
       </div>

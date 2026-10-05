@@ -14,7 +14,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { budgets, projectTypes, validateInquiry, type InquiryErrors } from "@/lib/contact";
+import {
+  budgets,
+  contactRoles,
+  projectTypes,
+  validateInquiry,
+  type ContactRole,
+  type InquiryErrors,
+} from "@/lib/contact";
 import { cn } from "@/lib/utils";
 
 const field =
@@ -30,19 +37,28 @@ function FieldError({ message, id }: { message?: string; id: string }) {
 }
 
 export function ContactForm() {
+  const [role, setRole] = useState<ContactRole>("client");
   const [errors, setErrors] = useState<InquiryErrors>({});
   const [pending, setPending] = useState(false);
   const [sent, setSent] = useState(false);
   const [projectType, setProjectType] = useState("");
   const [budget, setBudget] = useState("");
 
+  function switchRole(next: ContactRole) {
+    setRole(next);
+    setErrors({});
+    setProjectType("");
+    setBudget("");
+  }
+
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
     const data = {
       ...Object.fromEntries(new FormData(form).entries()),
-      projectType,
-      budget,
+      role,
+      projectType: role === "client" ? projectType : "",
+      budget: role === "client" ? budget : "",
     };
 
     const { errors: problems } = validateInquiry(data);
@@ -105,6 +121,37 @@ export function ContactForm() {
         <input id="company_website" name="company_website" type="text" tabIndex={-1} autoComplete="off" />
       </div>
 
+      <div
+        role="tablist"
+        aria-label="Contact type"
+        className="grid grid-cols-2 rounded-full border border-white/10 bg-white/4 p-1"
+      >
+        {(Object.keys(contactRoles) as ContactRole[]).map((value) => {
+          const active = role === value;
+          return (
+            <button
+              key={value}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              onClick={() => switchRole(value)}
+              className={cn(
+                "h-12 rounded-full text-[15px] font-medium transition-colors",
+                active ? "bg-brand text-ink-900" : "text-neutral-400 hover:text-white",
+              )}
+            >
+              {contactRoles[value]}
+            </button>
+          );
+        })}
+      </div>
+
+      <p className="px-1 text-sm text-neutral-500">
+        {role === "client"
+          ? "Tell us about the software you want built."
+          : "Apply for the client-partner seat. No coding required."}
+      </p>
+
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="grid gap-2">
           <Label htmlFor="name" className="sr-only">Your name</Label>
@@ -137,68 +184,107 @@ export function ContactForm() {
         </div>
       </div>
 
-      <div className="grid gap-2">
-        <Label htmlFor="company" className="sr-only">Company (optional)</Label>
-        <Input
-          id="company"
-          name="company"
-          autoComplete="organization"
-          maxLength={120}
-          placeholder="Company"
-          className={field}
-        />
-      </div>
+      {role === "client" ? (
+        <>
+          <div className="grid gap-2">
+            <Label htmlFor="company" className="sr-only">Company (optional)</Label>
+            <Input
+              id="company"
+              name="company"
+              autoComplete="organization"
+              maxLength={120}
+              placeholder="Company"
+              className={field}
+            />
+          </div>
 
-      <div className="grid gap-5 sm:grid-cols-2">
-        <div className="grid gap-2">
-          <Label htmlFor="projectType" className="sr-only">Project type</Label>
-          <Select value={projectType} onValueChange={setProjectType}>
-            <SelectTrigger
-              id="projectType"
-              className={cn(field, "h-14! w-full data-placeholder:text-neutral-500 [&_svg]:text-brand")}
-              aria-invalid={Boolean(errors.projectType)}
-              aria-describedby={errors.projectType ? "projectType-error" : undefined}
-            >
-              <SelectValue placeholder="Project Type *" />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(projectTypes).map(([value, label]) => (
-                <SelectItem key={value} value={value}>
-                  {label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <FieldError id="projectType-error" message={errors.projectType} />
+          <div className="grid gap-5 sm:grid-cols-2">
+            <div className="grid gap-2">
+              <Label htmlFor="projectType" className="sr-only">Project type</Label>
+              <Select value={projectType} onValueChange={setProjectType}>
+                <SelectTrigger
+                  id="projectType"
+                  className={cn(field, "h-14! w-full data-placeholder:text-neutral-500 [&_svg]:text-brand")}
+                  aria-invalid={Boolean(errors.projectType)}
+                  aria-describedby={errors.projectType ? "projectType-error" : undefined}
+                >
+                  <SelectValue placeholder="Project Type *" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(projectTypes).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FieldError id="projectType-error" message={errors.projectType} />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="budget" className="sr-only">Budget (optional)</Label>
+              <Select value={budget} onValueChange={setBudget}>
+                <SelectTrigger
+                  id="budget"
+                  className={cn(field, "h-14! w-full data-placeholder:text-neutral-500 [&_svg]:text-brand")}
+                >
+                  <SelectValue placeholder="Budget" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(budgets).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid gap-2">
+            <Label htmlFor="region" className="sr-only">City or region</Label>
+            <Input
+              id="region"
+              name="region"
+              maxLength={80}
+              placeholder="City or region *"
+              className={field}
+              aria-invalid={Boolean(errors.region)}
+              aria-describedby={errors.region ? "region-error" : undefined}
+            />
+            <FieldError id="region-error" message={errors.region} />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="platforms" className="sr-only">Freelance platforms</Label>
+            <Input
+              id="platforms"
+              name="platforms"
+              maxLength={160}
+              placeholder="Upwork, Handshake, LinkedIn *"
+              className={field}
+              aria-invalid={Boolean(errors.platforms)}
+              aria-describedby={errors.platforms ? "platforms-error" : undefined}
+            />
+            <FieldError id="platforms-error" message={errors.platforms} />
+          </div>
         </div>
-        <div className="grid gap-2">
-          <Label htmlFor="budget" className="sr-only">Budget (optional)</Label>
-          <Select value={budget} onValueChange={setBudget}>
-            <SelectTrigger
-              id="budget"
-              className={cn(field, "h-14! w-full data-placeholder:text-neutral-500 [&_svg]:text-brand")}
-            >
-              <SelectValue placeholder="Budget" />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(budgets).map(([value, label]) => (
-                <SelectItem key={value} value={value}>
-                  {label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      )}
 
       <div className="grid gap-2">
-        <Label htmlFor="message" className="sr-only">Project details</Label>
+        <Label htmlFor="message" className="sr-only">
+          {role === "client" ? "Project details" : "Partner note"}
+        </Label>
         <Textarea
           id="message"
           name="message"
           rows={6}
           maxLength={2000}
-          placeholder="Tell us about your project *"
+          placeholder={
+            role === "client"
+              ? "Tell us about your project *"
+              : "Tell us about your freelance account and how you want to partner *"
+          }
           className={cn(field, "h-auto min-h-44 rounded-[28px] py-5")}
           aria-invalid={Boolean(errors.message)}
           aria-describedby={errors.message ? "message-error" : undefined}
@@ -215,8 +301,10 @@ export function ContactForm() {
               <Loader2Icon className="size-4 animate-spin" />
               Sending…
             </span>
-          ) : (
+          ) : role === "client" ? (
             "Send Message"
+          ) : (
+            "Apply as Partner"
           )}
         </PillButton>
         <p className="text-sm text-neutral-500">We only use your details to reply.</p>

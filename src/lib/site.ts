@@ -8,7 +8,7 @@ export const site = {
     { label: "About", href: "#about" },
     { label: "Services", href: "#services" },
     { label: "Process", href: "#process" },
-    { label: "Engagement", href: "#engagement" },
+    { label: "Apply as a partner", href: "#partner-program" },
     { label: "FAQ", href: "#faq" },
     { label: "Contact", href: "#contact" },
   ],

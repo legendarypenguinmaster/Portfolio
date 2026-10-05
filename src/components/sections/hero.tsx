@@ -100,10 +100,10 @@ export function Hero() {
           <div className="mt-10 flex flex-wrap items-center gap-6">
             <PillButton href="#contact">Start a Project</PillButton>
             <a
-              href="#services"
+              href="#partner-program"
               className="text-base font-medium text-white underline decoration-white/30 underline-offset-8 transition-colors hover:text-brand hover:decoration-brand"
             >
-              Explore services
+              Apply as a partner
             </a>
           </div>
         </div>
