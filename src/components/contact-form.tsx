@@ -193,7 +193,7 @@ export function ContactForm() {
               name="company"
               autoComplete="organization"
               maxLength={120}
-              placeholder="Company"
+              placeholder="Company domain or company name"
               className={field}
             />
           </div>
