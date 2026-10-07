@@ -18,20 +18,23 @@ async function sendToSlack(record: InquiryRecord) {
   const channel = process.env.SLACK_CHANNEL;
   if (!token || !channel) throw new Error("Slack is not configured.");
 
+  const fullName = `${record.firstName} ${record.lastName}`.trim();
   const lines =
     record.role === "partner"
       ? [
           "*New Diamond IT partner application*",
-          `*Name:* ${record.name}`,
+          `*Name:* ${fullName}`,
           `*Email:* ${record.email}`,
+          `*Phone:* ${record.phone}`,
           `*Region:* ${record.region || "Not provided"}`,
           `*Platforms:* ${record.platforms || "Not provided"}`,
           `*Message:*\n${record.message}`,
         ]
       : [
           "*New Diamond IT client inquiry*",
-          `*Name:* ${record.name}`,
+          `*Name:* ${fullName}`,
           `*Email:* ${record.email}`,
+          `*Phone:* ${record.phone}`,
           `*Company:* ${record.company || "Not provided"}`,
           `*Project:* ${record.projectType ? projectTypes[record.projectType] : "Not provided"}`,
           `*Budget:* ${record.budget ? budgets[record.budget] : "Not provided"}`,

@@ -26,8 +26,10 @@ export type ContactRole = keyof typeof contactRoles;
 
 export type Inquiry = {
   role: ContactRole;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
+  phone: string;
   company: string;
   projectType: ProjectType | "";
   budget: Budget | "";
@@ -52,8 +54,10 @@ export function validateInquiry(body: Record<string, unknown>) {
   const budget = clean(body.budget, 40);
   const inquiry: Inquiry = {
     role: role in contactRoles ? (role as ContactRole) : "client",
-    name: clean(body.name, 80),
+    firstName: clean(body.firstName, 40),
+    lastName: clean(body.lastName, 40),
     email: clean(body.email, 120).toLowerCase(),
+    phone: clean(body.phone, 40),
     company: clean(body.company, 120),
     projectType: projectType in projectTypes ? (projectType as ProjectType) : "",
     budget: budget in budgets ? (budget as Budget) : "",
@@ -62,12 +66,15 @@ export function validateInquiry(body: Record<string, unknown>) {
     message: clean(body.message, 2000),
   };
   const errors: InquiryErrors = {};
+  const phoneDigits = inquiry.phone.replace(/\D/g, "");
 
   if (!(role in contactRoles)) errors.form = "Choose Client or Partner.";
-  if (inquiry.name.length < 2) errors.name = "Enter your name.";
+  if (inquiry.firstName.length < 2) errors.firstName = "Enter your first name.";
+  if (inquiry.lastName.length < 2) errors.lastName = "Enter your last name.";
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inquiry.email)) {
     errors.email = "Enter a valid email address.";
   }
+  if (phoneDigits.length < 7) errors.phone = "Enter a valid phone number.";
 
   if (inquiry.role === "client") {
     if (!inquiry.projectType) errors.projectType = "Choose a project type.";

@@ -154,18 +154,32 @@ export function ContactForm() {
 
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="grid gap-2">
-          <Label htmlFor="name" className="sr-only">Your name</Label>
+          <Label htmlFor="firstName" className="sr-only">First name</Label>
           <Input
-            id="name"
-            name="name"
-            autoComplete="name"
-            maxLength={80}
-            placeholder="Your Name *"
+            id="firstName"
+            name="firstName"
+            autoComplete="given-name"
+            maxLength={40}
+            placeholder="First Name *"
             className={field}
-            aria-invalid={Boolean(errors.name)}
-            aria-describedby={errors.name ? "name-error" : undefined}
+            aria-invalid={Boolean(errors.firstName)}
+            aria-describedby={errors.firstName ? "firstName-error" : undefined}
           />
-          <FieldError id="name-error" message={errors.name} />
+          <FieldError id="firstName-error" message={errors.firstName} />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="lastName" className="sr-only">Last name</Label>
+          <Input
+            id="lastName"
+            name="lastName"
+            autoComplete="family-name"
+            maxLength={40}
+            placeholder="Last Name *"
+            className={field}
+            aria-invalid={Boolean(errors.lastName)}
+            aria-describedby={errors.lastName ? "lastName-error" : undefined}
+          />
+          <FieldError id="lastName-error" message={errors.lastName} />
         </div>
         <div className="grid gap-2">
           <Label htmlFor="email" className="sr-only">Work email</Label>
@@ -181,6 +195,21 @@ export function ContactForm() {
             aria-describedby={errors.email ? "email-error" : undefined}
           />
           <FieldError id="email-error" message={errors.email} />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="phone" className="sr-only">Phone number</Label>
+          <Input
+            id="phone"
+            name="phone"
+            type="tel"
+            autoComplete="tel"
+            maxLength={40}
+            placeholder="Phone Number *"
+            className={field}
+            aria-invalid={Boolean(errors.phone)}
+            aria-describedby={errors.phone ? "phone-error" : undefined}
+          />
+          <FieldError id="phone-error" message={errors.phone} />
         </div>
       </div>
 
