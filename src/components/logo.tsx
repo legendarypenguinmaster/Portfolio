@@ -2,6 +2,13 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { site } from "@/lib/site";
 
+// "D" monogram with an "I" stem: outer letterform, the counter (cut at 45°), and the seam between I and D.
+// Even-odd fill turns the counter and seam into holes.
+const markPath =
+  "M11 13.5H57C76 13.5 88.5 29 88.5 50.25S76 87 57 87H17V19.5Z" +
+  "M20 23.5H56C67.5 23.5 75 35 75 51S67.5 78.5 56 78.5H47.5V51Z" +
+  "M31.5 35L34.5 38V87H31.5Z";
+
 export function DiamondMark({
   className,
   variant = "gold",
@@ -9,21 +16,23 @@ export function DiamondMark({
   className?: string;
   variant?: "gold" | "ink";
 }) {
-  if (variant === "ink") {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden="true" className={cn("size-8", className)}>
-        <path d="M12 1.6 22 9.4 12 22.4 2 9.4Z" fill="#0a0a0a" />
-        <path d="M12 1.6 17.4 9.4 12 22.4 6.6 9.4Z" fill="#2a2a2a" />
-        <path d="M2 9.4h20" fill="none" stroke="#fcdb66" strokeWidth="0.7" />
-      </svg>
-    );
-  }
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className={cn("size-8", className)}>
-      <path d="M12 1.6 22 9.4 12 22.4 2 9.4Z" fill="#fdeaa3" />
-      <path d="M12 1.6 17.4 9.4 12 22.4 6.6 9.4Z" fill="#fcdb66" />
-      <path d="M12 1.6 17.4 9.4H6.6Z" fill="#fff4cc" />
-      <path d="M2 9.4h20" fill="none" stroke="#0a0a0a" strokeWidth="0.7" />
+    <svg viewBox="0 0 100 100" aria-hidden="true" className={cn("size-8", className)}>
+      {variant === "gold" && (
+        <defs>
+          <linearGradient id="diamond-mark-gold" x1="0.1" y1="1" x2="0.9" y2="0.1">
+            <stop offset="0" stopColor="#b8801c" />
+            <stop offset="0.4" stopColor="#d9a02a" />
+            <stop offset="0.75" stopColor="#f5c84a" />
+            <stop offset="1" stopColor="#fde27a" />
+          </linearGradient>
+        </defs>
+      )}
+      <path
+        d={markPath}
+        fillRule="evenodd"
+        fill={variant === "gold" ? "url(#diamond-mark-gold)" : "#0a0a0a"}
+      />
     </svg>
   );
 }
